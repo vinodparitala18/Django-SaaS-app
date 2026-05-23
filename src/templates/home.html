@@ -1,0 +1,13 @@
+<!-- templates/home.html -->
+
+{% extends 'base.html' %}
+
+{% block title %}
+Home Page
+{% endblock %}
+
+{% block content %}
+<h2>Welcome Home</h2>
+<p>This is home page.</p>
+{{ queryset }}
+{% endblock %}
