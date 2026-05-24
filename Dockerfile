@@ -49,10 +49,8 @@ ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
-# Optional rav setup
-COPY ./rav.yaml /tmp/rav.yaml
-
-# Uncomment only if rav works correctly
+# Uncomment only if rav works correctly (requires rav.yaml in repo root)
+# COPY ./rav.yaml /tmp/rav.yaml
 # RUN rav download staticfiles_prod -f /tmp/rav.yaml
 
 # Collect static files
