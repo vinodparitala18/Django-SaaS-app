@@ -1,21 +1,21 @@
-# Set the python version as a build-time argument
+# Python base image
 ARG PYTHON_VERSION=3.12-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
-# Create a virtual environment
+# Create virtual environment
 RUN python -m venv /opt/venv
 
-# Set virtual environment path
+# Use virtual environment
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Python environment settings
+# Python settings
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Upgrade pip
 RUN pip install --upgrade pip
 
-# Install OS dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     libpq-dev \
     libjpeg-dev \
@@ -23,17 +23,16 @@ RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Create application directory
+# Create app directory
 RUN mkdir -p /code
 
-# IMPORTANT:
-# manage.py exists inside src/myproject
-WORKDIR /code/myproject
+# Correct working directory
+WORKDIR /code
 
-# Copy requirements first
+# Copy requirements
 COPY requirements.txt /tmp/requirements.txt
 
-# Install Python dependencies
+# Install dependencies
 RUN pip install -r /tmp/requirements.txt
 
 # Install production packages
@@ -49,8 +48,10 @@ ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
-# Uncomment only if rav works correctly (requires rav.yaml in repo root)
-# COPY ./rav.yaml /tmp/rav.yaml
+# Optional rav config
+COPY ./rav.yaml /tmp/rav.yaml
+
+# Uncomment only if needed
 # RUN rav download staticfiles_prod -f /tmp/rav.yaml
 
 # Collect static files
@@ -60,19 +61,16 @@ RUN python manage.py collectstatic --noinput
 ARG PROJ_NAME="myproject"
 
 # Create startup script
-RUN printf "#!/bin/bash\n" > /code/myproject/paracord_runner.sh && \
-    printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> /code/myproject/paracord_runner.sh && \
-    printf "python manage.py migrate --no-input\n" >> /code/myproject/paracord_runner.sh && \
-    printf "gunicorn ${PROJ_NAME}.wsgi:application --bind 0.0.0.0:\$RUN_PORT\n" >> /code/myproject/paracord_runner.sh
+RUN printf "#!/bin/bash\n" > /code/paracord_runner.sh && \
+    printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> /code/paracord_runner.sh && \
+    printf "python manage.py migrate --no-input\n" >> /code/paracord_runner.sh && \
+    printf "gunicorn ${PROJ_NAME}.wsgi:application --bind 0.0.0.0:\$RUN_PORT\n" >> /code/paracord_runner.sh
 
-# Make script executable
-RUN chmod +x /code/myproject/paracord_runner.sh
-
-# Cleanup
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Make executable
+RUN chmod +x /code/paracord_runner.sh
 
 # Expose port
 EXPOSE 8000
 
-# Start application
+# Start app
 CMD ["./paracord_runner.sh"]
