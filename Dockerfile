@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /code
 
 # Set the working directory to that same code directory
-WORKDIR /code
+WORKDIR /code/myproject
 
 # Copy the requirements file into the container
 COPY requirements.txt /tmp/requirements.txt
@@ -63,7 +63,7 @@ RUN python manage.py collectstatic --noinput
 # whitenoise -> s3
 
 # set the Django default project name
-ARG PROJ_NAME="cfehome"
+ARG PROJ_NAME="myproject"
 
 # create a bash script to run the Django project
 # this script will execute at runtime when
